@@ -78,9 +78,6 @@ async def get_original_url(short_code: str):
             await delete_short_url(short_code)
             raise HTTPException(status_code=404, detail="Short code has expired")
 
-        cursor.execute("UPDATE urls SET access_count = access_count + 1 WHERE short_code = %s", (short_code,))
-        conn.commit()
-
         cursor.close()
         conn.close()
 
@@ -90,7 +87,7 @@ async def get_original_url(short_code: str):
             "created_at": result[3].strftime("%Y-%m-%d %H:%M:%S %p"),
             "last_updated_at": result[4].strftime("%Y-%m-%d %H:%M:%S %p"),
             "expiration_date": result[5].strftime("%Y-%m-%d %H:%M:%S %p"),
-            "access_count": result[6] + 1
+            "access_count": result[6]
         }
 
     except psycopg2.Error as e:
@@ -189,6 +186,12 @@ async def redirect_to_url(short_code : str):
             conn.close()
             await delete_short_url(short_code)
             raise HTTPException(status_code=404, detail="Short code has expired")
+
+        cursor.execute("UPDATE urls SET access_count = %s WHERE short_code = %s", (result[6] + 1, short_code))
+        conn.commit()
+
+        cursor.close()
+        conn.close()
 
         return RedirectResponse(url=result[2])
 
