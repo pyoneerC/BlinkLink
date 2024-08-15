@@ -6,6 +6,14 @@ import requests
 import psycopg2
 import os
 from starlette.responses import RedirectResponse
+import redis
+
+r = redis.Redis(
+  host=os.getenv("REDIS_HOST"),
+  port=os.getenv("REDIS_PORT"),
+  password=os.getenv("REDIS_PASSWORD"),
+  ssl=True
+)
 
 countries = {}
 
