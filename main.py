@@ -10,20 +10,10 @@ app = FastAPI()
 idx = 0
 urls = {}
 
-conn_str = os.getenv("DATABASE_URL")
+def get_db_connection():
+    conn = psycopg2.connect(os.getenv("DATABASE_URL"))
+    return conn
 
-try:
-    conn = psycopg2.connect(conn_str)
-    cursor = conn.cursor()
-    cursor.execute("SELECT version();")
-
-    record = cursor.fetchone()
-    print("Database version:", record)
-
-    cursor.close()
-    conn.close()
-except Exception as e:
-    print("Error connecting to the database:", e)
 
 @app.post("/shorten")
 async def create_short_url(url: str):
@@ -37,6 +27,16 @@ async def create_short_url(url: str):
             code = code[:6]
             created_at = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S %p")
             expiration_date = (datetime.datetime.now() + datetime.timedelta(days=69)).strftime("%Y-%m-%d %H:%M:%S %p")
+
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute(
+                "INSERT INTO urls (short_code, original_url, created_at, last_updated_at, expiration_date, access_count) VALUES (%s, %s, %s, %s, %s, %s)",
+                (code, url, created_at, created_at, expiration_date, 0))
+            conn.commit()
+            cursor.close()
+            conn.close()
+
             urls[code] = {
                     "id" : idx,
                     "short_code": code, # 'b7bf24'
