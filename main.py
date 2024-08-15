@@ -1,18 +1,29 @@
-import datetime
-import hashlib
-from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse, Response
-import requests
-import psycopg2
-import os
 from starlette.responses import RedirectResponse
+from fastapi import FastAPI, HTTPException
+import psycopg2
+import datetime
+import requests
+import hashlib
 import redis
+import os
+
+# TODO: Make a privacy policy (logging IP addresses for specific purposes such as rate limiting and security)
+# TODO: Log IP's in DB (not public unlike countries) to rate limit requests (e.g. 10 requests per minute)
+# TODO: Make a function to connect to the DB and select data to reduce redundancy
+# TODO: Try using @lru.cache to see if response time decreases
+# TODO: Test thoroughly in Postman (local and deployed)
+# TODO: Integrate Redis between the API and DB
+# TODO: Integrate url access locations in DB
+# TODO: Put (all of) .env in Render Settings
+# TODO: User Log-in logic (db for users)
+# TODO: Test all possible edge cases
 
 r = redis.Redis(
+  ssl=os.getenv("REDIS_SSL"),
   host=os.getenv("REDIS_HOST"),
   port=os.getenv("REDIS_PORT"),
   password=os.getenv("REDIS_PASSWORD"),
-  ssl=True
 )
 
 countries = {}
@@ -219,7 +230,6 @@ async def redirect_to_url(short_code : str):
 
         country_name = data['country_name']
 
-        # TODO: Put this in the database
         if country_name in countries:
             countries[country_name] += 1
         else:
