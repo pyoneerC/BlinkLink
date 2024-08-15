@@ -31,7 +31,15 @@ async def create_short_url(url: str):
         if existing_url:
             cursor.close()
             conn.close()
-            raise HTTPException(status_code=409, detail=f"Short code already exists: {code}")
+
+            return JSONResponse(
+                status_code=409,
+                content={
+                    "error": "Conflict",
+                    "message": f"Short code already exists!",
+                    "short_code": code
+                }
+            )
 
         cursor.execute(
             "INSERT INTO urls (short_code, original_url, created_at, last_updated_at, expiration_date, access_count) "
