@@ -112,6 +112,9 @@ async def update_short_url(short_code: str, url: str):
         if url == result[2]:
             raise HTTPException(status_code=409, detail=f"New URL is the same as the current URL: {url}")
 
+        if not url.startswith("http://") and not url.startswith("https://"):
+            raise HTTPException(status_code=404, detail="Invalid URL, please include 'http://' or 'https://' in front of the URL")
+
         last_updated_at = datetime.datetime.now()
 
         cursor.execute(
