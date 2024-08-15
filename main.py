@@ -3,10 +3,27 @@ import hashlib
 from fastapi import FastAPI, HTTPException
 import requests
 from flask import Response
+import psycopg2
+import os
 
 app = FastAPI()
 idx = 0
 urls = {}
+
+conn_str = os.getenv("DATABASE_URL")
+
+try:
+    conn = psycopg2.connect(conn_str)
+    cursor = conn.cursor()
+    cursor.execute("SELECT version();")
+
+    record = cursor.fetchone()
+    print("Database version:", record)
+
+    cursor.close()
+    conn.close()
+except Exception as e:
+    print("Error connecting to the database:", e)
 
 @app.post("/shorten")
 async def create_short_url(url: str):
