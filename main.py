@@ -36,8 +36,7 @@ async def create_short_url(url: str):
         cursor.execute(
             "INSERT INTO urls (short_code, original_url, created_at, last_updated_at, expiration_date, access_count) "
             "VALUES (%s, %s, %s, %s, %s, %s)",
-            (code, url, created_at.strftime("%Y-%m-%d %H:%M:%S %p"), created_at.strftime("%Y-%m-%d %H:%M:%S %p"),
-             expiration_date.strftime("%Y-%m-%d %H:%M:%S %p"), 0)
+            (code, url, created_at, created_at, expiration_date, 0)
         )
         conn.commit()
         cursor.close()
