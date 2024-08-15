@@ -7,6 +7,8 @@ import psycopg2
 import os
 from starlette.responses import RedirectResponse
 
+countries = {}
+
 app = FastAPI()
 
 def get_db_connection():
@@ -202,6 +204,20 @@ async def redirect_to_url(short_code : str):
 
         cursor.close()
         conn.close()
+
+        url = 'https://api.ipgeolocation.io/ipgeo?apiKey=' + os.getenv("API_KEY")
+        response = requests.get(url)
+        data = response.json()
+
+        country_name = data['country_name']
+
+        # TODO: Put this in the database
+        if country_name in countries:
+            countries[country_name] += 1
+        else:
+            countries[country_name] = 1
+
+        print(countries)
 
         return RedirectResponse(url=result[2])
 
