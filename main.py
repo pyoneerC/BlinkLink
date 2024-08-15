@@ -202,3 +202,7 @@ async def redirect_to_url(short_code : str):
 
     except:
         raise HTTPException(status_code=404, detail="Short code not found")
+
+@app.get("/health")
+async def health_check():
+    return JSONResponse(status_code=200, content={"status": "ok"})
