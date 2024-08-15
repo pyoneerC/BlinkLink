@@ -5,6 +5,7 @@ from fastapi.responses import JSONResponse, Response
 import requests
 import psycopg2
 import os
+from starlette.responses import RedirectResponse
 
 app = FastAPI()
 
@@ -165,3 +166,34 @@ async def delete_short_url(short_code: str):
 
     except psycopg2.Error as e:
         raise HTTPException(status_code=500, detail=f"Database error: {e}")
+
+
+@app.get("/")
+async def redirect_to_url(short_code : str):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT * FROM urls WHERE short_code = %s", (short_code,))
+        result = cursor.fetchone()
+
+        if not result:
+            cursor.close()
+            conn.close()
+            raise HTTPException(status_code=404, detail="Short code not found")
+
+        expiration_date = result[5]
+
+        if expiration_date < datetime.datetime.now():
+            cursor.close()
+            conn.close()
+            await delete_short_url(short_code)
+            raise HTTPException(status_code=404, detail="Short code has expired")
+
+        return RedirectResponse(url=result[2])
+
+    except psycopg2.Error as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {e}")
+
+    except:
+        raise HTTPException(status_code=404, detail="Short code not found")
