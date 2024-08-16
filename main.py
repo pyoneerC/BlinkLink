@@ -14,6 +14,8 @@ from starlette.responses import RedirectResponse
 # TODO: User Log-in logic (other table for users)
 # TODO: Admin and User roles
 # TODO: JSON Web Tokens (JWT) for authentication
+# TODO: Email validation API for login
+# TODO: User Backup DB
 
 r: Redis = redis.Redis(
   ssl=os.getenv("REDIS_SSL"),
