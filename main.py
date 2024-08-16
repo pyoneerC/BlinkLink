@@ -1,4 +1,5 @@
 import datetime
+import json
 import os
 import uuid
 
@@ -13,10 +14,10 @@ from starlette.responses import RedirectResponse
 # TODO: Log altitudes and longitudes in to visualize on a map
 # TODO: Integrate url access locations in DB
 # TODO: User Log-in logic (db for users)
-# TODO: Integrate Redis for getting URL info, expire after 3 minutes
 # TODO: Admin and User roles
 # TODO: JSON Web Tokens (JWT) for authentication
 # TODO: Avoid duplicated code fragments
+# TODO: Fix all DB errors and test edge cases
 
 r = redis.Redis(
   ssl=os.getenv("REDIS_SSL"),
@@ -85,7 +86,11 @@ async def create_short_url(url: str):
         raise HTTPException(status_code=500, detail=f"Database error: {e}")
 
 @app.get("/shorten/{short_code}")
-async def get_original_url(short_code: str):
+async def get_url_info(short_code: str):
+    cached_url = r.get(short_code)
+    if cached_url:
+        return json.loads(cached_url)
+
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -108,7 +113,7 @@ async def get_original_url(short_code: str):
         cursor.close()
         conn.close()
 
-        return {
+        result = {
             "short_code": result[1],
             "original_url": result[2],
             "created_at": result[3].strftime("%Y-%m-%d %H:%M:%S %p"),
@@ -116,6 +121,10 @@ async def get_original_url(short_code: str):
             "expiration_date": result[5].strftime("%Y-%m-%d %H:%M:%S %p"),
             "access_count": result[6]
         }
+
+        r.setex(short_code, 180, json.dumps(result))
+
+        return result
 
     except psycopg2.Error as e:
         raise HTTPException(status_code=500, detail=f"Database error: {e}")
