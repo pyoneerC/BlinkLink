@@ -1,0 +1,12 @@
+CREATE OR REPLACE FUNCTION backup_on_change()
+RETURNS TRIGGER AS $$
+BEGIN
+
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER users_backup_trigger
+AFTER INSERT OR UPDATE OR DELETE
+ON urls
+FOR EACH ROW
+EXECUTE FUNCTION backup_on_change();

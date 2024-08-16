@@ -18,7 +18,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER backup_trigger
+CREATE TRIGGER urls_backup_trigger
 AFTER INSERT OR UPDATE OR DELETE
 ON urls
 FOR EACH ROW
