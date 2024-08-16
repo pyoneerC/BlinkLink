@@ -1,6 +1,6 @@
 import datetime
-import hashlib
 import os
+import uuid
 
 import psycopg2
 import redis
@@ -16,7 +16,6 @@ from starlette.responses import RedirectResponse
 # TODO: Integrate Redis for getting URL info, expire after 3 minutes
 # TODO: Admin and User roles
 # TODO: JSON Web Tokens (JWT) for authentication
-# TODO: UUID instead of md5 for short code
 # TODO: Avoid duplicated code fragments
 
 r = redis.Redis(
@@ -40,7 +39,7 @@ async def create_short_url(url: str):
         if response.status_code < 200 or response.status_code >= 400:
             raise HTTPException(status_code=404, detail="Invalid URL")
 
-        code = hashlib.md5(url.encode()).hexdigest()[:6]
+        code = uuid.uuid4().hex[:6]
         created_at = datetime.datetime.now()
         expiration_date = created_at + datetime.timedelta(days=69)
 
