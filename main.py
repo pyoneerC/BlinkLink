@@ -11,10 +11,7 @@ from fastapi.responses import JSONResponse, Response
 from redis import Redis
 from starlette.responses import RedirectResponse
 
-# TODO: User Log-in logic (other table for users)
-# TODO: Admin and User roles
 # TODO: JSON Web Tokens (JWT) for authentication
-# TODO: Email validation API for login
 # TODO: User Backup DB
 
 r: Redis = redis.Redis(
@@ -258,11 +255,12 @@ async def health_check():
     return JSONResponse(status_code=200, content={"status": "ok"})
 
 @app.post("/login")
-async def login(username: str, password: str):
+async def login(email: str, password: str):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM users WHERE username = %s AND password = %s", (username, password))
+        cursor.execute("SELECT * FROM users WHERE email = %s AND password = %s",
+                          (email, password))
         user = cursor.fetchone()
         cursor.close()
         conn.close()
@@ -274,11 +272,12 @@ async def login(username: str, password: str):
         raise HTTPException(status_code=500, detail=f"Database error: {e}")
 
 @app.post("/register")
-async def register(username: str, password: str):
+async def register(email: str, password: str):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (username, password))
+        cursor.execute("INSERT INTO users (email, password, created_at, role) VALUES (%s, %s, %s, %s)",
+                       (email, password, datetime.datetime.now(), password == 'admin' and 'admin' or 'user'))
         conn.commit()
         cursor.close()
         conn.close()
