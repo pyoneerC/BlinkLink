@@ -10,6 +10,7 @@ from fastapi.responses import JSONResponse, Response
 from starlette.responses import RedirectResponse
 
 # TODO: Log IPs in DB (not public unlike countries) to rate limit requests (e.g. 10 requests per minute)
+# TODO: Log altitudes and longitudes in to visualize on a map
 # TODO: Integrate url access locations in DB
 # TODO: User Log-in logic (db for users)
 # TODO: Integrate Redis for getting URL info, expire after 3 minutes
