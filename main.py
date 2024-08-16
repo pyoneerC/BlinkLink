@@ -1,17 +1,22 @@
-from fastapi.responses import JSONResponse, Response
-from starlette.responses import RedirectResponse
-from fastapi import FastAPI, HTTPException
-import psycopg2
 import datetime
-import requests
 import hashlib
-import redis
 import os
 
-# TODO: Log IP's in DB (not public unlike countries) to rate limit requests (e.g. 10 requests per minute)
-# TODO: Make a good README.md (add images) for this repo and for the frontend web project too
+import psycopg2
+import redis
+import requests
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import JSONResponse, Response
+from starlette.responses import RedirectResponse
+
+# TODO: Log IPs in DB (not public unlike countries) to rate limit requests (e.g. 10 requests per minute)
 # TODO: Integrate url access locations in DB
 # TODO: User Log-in logic (db for users)
+# TODO: Integrate Redis for getting URL info, expire after 3 minutes
+# TODO: Admin and User roles
+# TODO: JSON Web Tokens (JWT) for authentication
+# TODO: UUID instead of md5 for short code
+# TODO: Avoid duplicated code fragments
 
 r = redis.Redis(
   ssl=os.getenv("REDIS_SSL"),
@@ -242,3 +247,32 @@ async def redirect_to_url(short_code : str):
 @app.get("/health")
 async def health_check():
     return JSONResponse(status_code=200, content={"status": "ok"})
+
+@app.post("/login")
+async def login(username: str, password: str):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM users WHERE username = %s AND password = %s", (username, password))
+        user = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        if user:
+            return JSONResponse(status_code=200, content={"message": "Login successful"})
+        else:
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+    except psycopg2.Error as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {e}")
+
+@app.post("/register")
+async def register(username: str, password: str):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (username, password))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return JSONResponse(status_code=201, content={"message": "User created"})
+    except psycopg2.Error as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {e}")
