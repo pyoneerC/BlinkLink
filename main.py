@@ -1,6 +1,7 @@
 import datetime
 import json
 import os
+import re
 import uuid
 
 import psycopg2
@@ -10,9 +11,6 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse, Response
 from redis import Redis
 from starlette.responses import RedirectResponse
-
-# TODO: JSON Web Tokens (JWT) for authentication
-# TODO: User Backup DB
 
 r: Redis = redis.Redis(
   ssl=os.getenv("REDIS_SSL"),
@@ -274,13 +272,58 @@ async def login(email: str, password: str):
 @app.post("/register")
 async def register(email: str, password: str):
     try:
+        email_regex = r"[^@]+@[^@]+\.[^@]+"
+        if not re.match(email_regex, email):
+            raise HTTPException(status_code=400, detail="Invalid email format")
+
+        password_regex = r"^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$"
+        if not re.match(password_regex, password):
+            raise HTTPException(status_code=400, detail="Password must be at least 8 characters long and contain at least one letter and one number")
+
         conn = get_db_connection()
         cursor = conn.cursor()
+        cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
+        user = cursor.fetchone()
+
+        if user:
+            cursor.close()
+            conn.close()
+            raise HTTPException(status_code=409, detail="User already exists, please try again with a different email")
+
+        if password == os.getenv("ADMIN_PASSWORD"):
+            role = "admin"
+        else:
+            role = "user"
+
         cursor.execute("INSERT INTO users (email, password, created_at, role) VALUES (%s, %s, %s, %s)",
-                       (email, password, datetime.datetime.now(), password == 'admin' and 'admin' or 'user'))
+                       (email, password, datetime.datetime.now(), role))
         conn.commit()
         cursor.close()
         conn.close()
         return JSONResponse(status_code=201, content={"message": "User created"})
+    except psycopg2.Error as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {e}")
+
+
+@app.delete("/delete")
+async def delete_user(email: str, password: str):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT * FROM users WHERE email = %s AND password = %s", (email, password))
+        user = cursor.fetchone()
+
+        if user is None:
+            cursor.close()
+            conn.close()
+            raise HTTPException(status_code=404, detail="User not found")
+
+        cursor.execute("DELETE FROM users WHERE email = %s AND password = %s", (email, password))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return Response(status_code=204)
+
     except psycopg2.Error as e:
         raise HTTPException(status_code=500, detail=f"Database error: {e}")
