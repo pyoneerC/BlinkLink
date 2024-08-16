@@ -2,8 +2,8 @@
 
 ## Introduction
 
-[Postman Demo](rsc/postman.gif)
-[Diagram](rsc/diagram.png)
+![Postman Demo](rsc/postman.gif)
+![Diagram](rsc/diagram.png)
 
 
 This project is a URL Shortener API built using FastAPI. It demonstrates how to integrate FastAPI with PostgreSQL, Redis, and other key technologies to create a robust and efficient web service. The project is designed not only as a practical tool but also as a learning resource for developers who want to deepen their understanding of backend development, API design, and the deployment of scalable web applications.
