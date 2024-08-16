@@ -8,6 +8,7 @@ import redis
 import requests
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse, Response
+from redis import Redis
 from starlette.responses import RedirectResponse
 
 # TODO: Log IPs in DB (not public unlike countries) to rate limit requests (e.g. 10 requests per minute)
@@ -16,10 +17,9 @@ from starlette.responses import RedirectResponse
 # TODO: User Log-in logic (db for users)
 # TODO: Admin and User roles
 # TODO: JSON Web Tokens (JWT) for authentication
-# TODO: Avoid duplicated code fragments
 # TODO: Fix all DB errors and test edge cases
 
-r = redis.Redis(
+r: Redis = redis.Redis(
   ssl=os.getenv("REDIS_SSL"),
   host=os.getenv("REDIS_HOST"),
   port=os.getenv("REDIS_PORT"),
@@ -92,26 +92,7 @@ async def get_url_info(short_code: str):
         return json.loads(cached_url)
 
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-
-        cursor.execute("SELECT * FROM urls WHERE short_code = %s", (short_code,))
-        result = cursor.fetchone()
-
-        if not result:
-            cursor.close()
-            conn.close()
-            raise HTTPException(status_code=404, detail="Short code not found")
-
-        expiration_date = result[5]
-        if expiration_date < datetime.datetime.now():
-            cursor.close()
-            conn.close()
-            await delete_short_url(short_code)
-            raise HTTPException(status_code=404, detail="Short code has expired")
-
-        cursor.close()
-        conn.close()
+        conn, cursor, result = await connect_to_db_and_check_validity(short_code)
 
         result = {
             "short_code": result[1],
@@ -207,24 +188,7 @@ async def delete_short_url(short_code: str):
 @app.get("/")
 async def redirect_to_url(short_code : str):
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-
-        cursor.execute("SELECT * FROM urls WHERE short_code = %s", (short_code,))
-        result = cursor.fetchone()
-
-        if not result:
-            cursor.close()
-            conn.close()
-            raise HTTPException(status_code=404, detail="Short code not found")
-
-        expiration_date = result[5]
-
-        if expiration_date < datetime.datetime.now():
-            cursor.close()
-            conn.close()
-            await delete_short_url(short_code)
-            raise HTTPException(status_code=404, detail="Short code has expired")
+        conn, cursor, result = await connect_to_db_and_check_validity(short_code)
 
         cursor.execute("UPDATE urls SET access_count = %s WHERE short_code = %s", (result[6] + 1, short_code))
         conn.commit()
@@ -252,6 +216,25 @@ async def redirect_to_url(short_code : str):
 
     except:
         raise HTTPException(status_code=404, detail="Short code not found")
+
+
+async def connect_to_db_and_check_validity(short_code):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM urls WHERE short_code = %s", (short_code,))
+    result = cursor.fetchone()
+    if not result:
+        cursor.close()
+        conn.close()
+        raise HTTPException(status_code=404, detail="Short code not found")
+    expiration_date = result[5]
+    if expiration_date < datetime.datetime.now():
+        cursor.close()
+        conn.close()
+        await delete_short_url(short_code)
+        raise HTTPException(status_code=404, detail="Short code has expired")
+    return conn, cursor, result
+
 
 @app.get("/health")
 async def health_check():
