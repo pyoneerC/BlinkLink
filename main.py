@@ -11,6 +11,8 @@ import os
 # TODO: Make a privacy policy (logging IP addresses for specific purposes such as rate limiting and security)
 # TODO: Log IP's in DB (not public unlike countries) to rate limit requests (e.g. 10 requests per minute)
 # TODO: Make a function to connect to the DB and select data to reduce redundancy
+# TODO: Make a tests.http file for (Postman) endpoint tests that run on cron jobs
+# TODO: Make a good README.md for this repo and for the frontend web project too
 # TODO: Try using @lru.cache to see if response time decreases
 # TODO: Test thoroughly in Postman (local and deployed)
 # TODO: Integrate Redis between the API and DB
