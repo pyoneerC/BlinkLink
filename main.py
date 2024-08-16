@@ -11,13 +11,11 @@ from fastapi.responses import JSONResponse, Response
 from redis import Redis
 from starlette.responses import RedirectResponse
 
-# TODO: Log IPs in DB (not public unlike countries) to rate limit requests (e.g. 10 requests per minute)
-# TODO: Log altitudes and longitudes in to visualize on a map
-# TODO: Integrate url access locations in DB
 # TODO: User Log-in logic (db for users)
 # TODO: Admin and User roles
 # TODO: JSON Web Tokens (JWT) for authentication
 # TODO: Fix all DB errors and test edge cases
+# TODO: Backup database
 
 r: Redis = redis.Redis(
   ssl=os.getenv("REDIS_SSL"),
@@ -186,34 +184,53 @@ async def delete_short_url(short_code: str):
 
 
 @app.get("/")
-async def redirect_to_url(short_code : str):
+async def redirect_to_url(short_code: str):
     try:
         conn, cursor, result = await connect_to_db_and_check_validity(short_code)
 
         cursor.execute("UPDATE urls SET access_count = %s WHERE short_code = %s", (result[6] + 1, short_code))
         conn.commit()
 
-        cursor.close()
-        conn.close()
-
         url = 'https://api.ipgeolocation.io/ipgeo?apiKey=' + os.getenv("API_KEY")
         response = requests.get(url)
         data = response.json()
 
         country_name = data['country_name']
+        state_prov = data['state_prov']
+        ip = data['ip']
+        latitude = data['latitude']
+        longitude = data['longitude']
 
         if country_name in countries:
             countries[country_name] += 1
         else:
             countries[country_name] = 1
 
-        print(countries)
+        if state_prov in countries:
+            countries[state_prov] += 1
+        else:
+            countries[state_prov] = 1
+
+        cursor.execute(
+            """
+            UPDATE urls
+            SET locations_where_accessed = array_append(locations_where_accessed, %s),
+                ip_addresses = array_append(ip_addresses, %s),
+                latitude = %s,
+                longitude = %s
+            WHERE short_code = %s
+            """,
+            (f"{country_name}, {state_prov}", ip, latitude, longitude, short_code)
+        )
+        conn.commit()
+
+        cursor.close()
+        conn.close()
 
         return RedirectResponse(url=result[2])
 
     except psycopg2.Error as e:
         raise HTTPException(status_code=500, detail=f"Database error: {e}")
-
     except:
         raise HTTPException(status_code=404, detail="Short code not found")
 
