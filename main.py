@@ -11,11 +11,9 @@ from fastapi.responses import JSONResponse, Response
 from redis import Redis
 from starlette.responses import RedirectResponse
 
-# TODO: User Log-in logic (db for users)
+# TODO: User Log-in logic (other table for users)
 # TODO: Admin and User roles
 # TODO: JSON Web Tokens (JWT) for authentication
-# TODO: Fix all DB errors and test edge cases
-# TODO: Backup database
 
 r: Redis = redis.Redis(
   ssl=os.getenv("REDIS_SSL"),

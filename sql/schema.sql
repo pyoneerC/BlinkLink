@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS urls (
 id SERIAL PRIMARY KEY,
-short_code VARCHAR(6) NOT NULL UNIQUE,
-original_url TEXT NOT NULL UNIQUE,
+short_code VARCHAR(6) NOT NULL,
+original_url TEXT NOT NULL,
 created_at TIMESTAMP NOT NULL,
 last_updated_at TIMESTAMP NOT NULL,
 expiration_date TIMESTAMP NOT NULL,
