@@ -15,6 +15,7 @@ import os
 # TODO: Make a good README.md for this repo and for the frontend web project too
 # TODO: Try using @lru.cache to see if response time decreases
 # TODO: Test thoroughly in Postman (local and deployed)
+# TODO: Turn run configs into files to not loose them
 # TODO: Integrate Redis between the API and DB
 # TODO: Integrate url access locations in DB
 # TODO: Put (all of) .env in Render Settings
