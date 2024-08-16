@@ -1,0 +1,46 @@
+name: API Endpoint Tests
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: '0 */3 * * *' # Run every 3 hours
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install httpie
+      run: sudo apt-get install httpie
+
+    - name: Run tests
+      run: |
+        
+        # Create a new short URL
+        http POST ${{ secrets.DEPLOYMENT_URL }}/shorten?url=${{ secrets.URL1 }}
+        
+        # Redirect to the original URL
+        http GET ${{ secrets.DEPLOYMENT_URL }}/?short_code=${{ secrets.SHORT_CODE }}
+        
+        # Get info about a short URL
+        http GET ${{ secrets.DEPLOYMENT_URL }}/shorten/${{ secrets.SHORT_CODE }}
+        
+        # Update a short URL
+        http PUT ${{ secrets.DEPLOYMENT_URL }}/shorten?short_code=${{ secrets.SHORT_CODE }}&url=${{ secrets.URL2 }}
+        
+        # Redirect to the new URL
+        http GET ${{ secrets.DEPLOYMENT_URL }}/?short_code=${{ secrets.SHORT_CODE }}
+        
+        # Get updated info about a short URL
+        http GET ${{ secrets.DEPLOYMENT_URL }}/shorten/${{ secrets.SHORT_CODE }}
+        
+        # Delete the short URL from DB
+        http DELETE ${{ secrets.DEPLOYMENT_URL }}/shorten/${{ secrets.SHORT_CODE }}
+        
+        # Health check
+        http GET ${{ secrets.DEPLOYMENT_URL }}/health

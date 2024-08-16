@@ -9,7 +9,6 @@ import redis
 import os
 
 # TODO: Log IP's in DB (not public unlike countries) to rate limit requests (e.g. 10 requests per minute)
-# TODO: Make a tests.http file for (Postman) endpoint tests that run on cron jobs ( github .yamls)
 # TODO: Make a good README.md (add images) for this repo and for the frontend web project too
 # TODO: Integrate url access locations in DB
 # TODO: User Log-in logic (db for users)

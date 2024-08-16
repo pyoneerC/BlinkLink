@@ -1,4 +1,4 @@
-## Tests for endpoints, runs on cron.
+## Tests for endpoints.
 
 ### LIVE TESTS
 
@@ -14,7 +14,7 @@ GET {{DEPLOYMENT_URL}}/shorten/{{SHORT_CODE}}
 ### Update a short URL
 PUT {{DEPLOYMENT_URL}}/shorten?short_code={{SHORT_CODE}}&url={{URL2}}
 
-### Redirect to the original URL
+### Redirect to the new URL
 GET {{DEPLOYMENT_URL}}/?short_code={{SHORT_CODE}}
 
 ### Get info about a short URL
@@ -40,7 +40,7 @@ GET http://127.0.0.1:8000/shorten/{{SHORT_CODE}}
 ### Update a short URL
 PUT http://127.0.0.1:8000/shorten?short_code={{SHORT_CODE}}&url={{URL2}}
 
-### Redirect to the original URL
+### Redirect to the new URL
 GET http://127.0.0.1:8000/?short_code={{SHORT_CODE}}
 
 ### Get info about a short URL
