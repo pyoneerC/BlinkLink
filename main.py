@@ -8,15 +8,11 @@ import hashlib
 import redis
 import os
 
-# TODO: Make a privacy policy (logging IP addresses for specific purposes such as rate limiting and security)
 # TODO: Log IP's in DB (not public unlike countries) to rate limit requests (e.g. 10 requests per minute)
-# TODO: Make a function to connect to the DB and select data to reduce redundancy
-# TODO: Make a tests.http file for (Postman) endpoint tests that run on cron jobs
-# TODO: Make a good README.md for this repo and for the frontend web project too
-# TODO: Test thoroughly in Postman (local and deployed)
+# TODO: Make a tests.http file for (Postman) endpoint tests that run on cron jobs ( github .yamls)
+# TODO: Make a good README.md (add images) for this repo and for the frontend web project too
 # TODO: Integrate url access locations in DB
 # TODO: User Log-in logic (db for users)
-# TODO: Test all possible edge cases
 
 r = redis.Redis(
   ssl=os.getenv("REDIS_SSL"),
