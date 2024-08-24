@@ -95,4 +95,4 @@ jobs:
         with:
           docker_hub_username: ${{ secrets.DOCKER_HUB_USERNAME }}
           docker_hub_access_token: ${{ secrets.DOCKER_HUB_TOKEN }}
-          image_name: "maxcomperatore/bliklink:latest"
+          image_name: "maxcomperatore/blinklink:latest"
